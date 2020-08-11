@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends\
     vim\
     graphviz\
     python-dev\
-    gnupg2
+    gnupg2 \
+    openssh-server
 
 RUN apt-get update && apt-get install -y gcc-aarch64-linux-gnu
 
@@ -42,13 +43,26 @@ RUN bash /install/ubuntu_install_cmake.sh
 
 RUN . $VAI_ROOT/conda/etc/profile.d/conda.sh && \
     conda activate vitis-ai-tensorflow && \
-    pip install --no-cache-dir antlr4-python3-runtime
+    pip install --no-cache-dir antlr4-python3-runtime onnx attrs decorator h5py opencv-python 
 
-ARG user
-ARG uid
-ARG gid
-ARG gname
-RUN groupadd $gname -g $gid -f && useradd -g $gname -ms /bin/bash $user -u $uid && usermod -aG sudo $user
-RUN passwd -d $user
+RUN mkdir /var/run/sshd
+
+# password is root
+RUN echo 'root:root' | chpasswd
+RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+RUN echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
+RUN echo 'PermitEmptyPasswords yes' >> /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
 
 ENV PATH="/opt/vitis_ai/compiler/dnnc/dpuv2:${PATH}"
+
+# Required to link pyxir against libxrt_core and libxilinxopencl
+# Should be replaced by appropriate cmake find libraries
+ENV LD_LIBRARY_PATH="/opt/xilinx/xrt/lib:${LD_LIBRARY_PATH}"
+
+

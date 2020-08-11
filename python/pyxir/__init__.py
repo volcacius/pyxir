@@ -40,19 +40,13 @@ device_r = TargetRegistry()
 
 
 def get_include_dir():
-    prod_include_dir = \
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "include")
-    dev_include_dir = \
-        os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                     "../../include")
-    if os.path.exists(prod_include_dir):
-        return prod_include_dir
-    return dev_include_dir
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', "include")
+    return os.path.normpath(path)
 
 
 def get_lib_dir():
     file_dir = os.path.dirname(os.path.abspath(__file__))
-    lib_dir = os.path.join(file_dir, '../')
+    lib_dir = os.path.join(file_dir, '..')
     return os.path.abspath(lib_dir)
 
 

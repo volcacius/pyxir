@@ -14,12 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Add pyxir to python path
-export PYXIR_ROOT="/workspace/python"
-export PYTHONPATH=$PYXIR_ROOT:${PYTHONPATH}
+# Mount external pyxir folder into /workspace/pyxir
 
-# Add dnnc compiler to path
-export PATH=/opt/vitis_ai/compiler/dnnc/dpuv2:${PATH}
-# echo $PATH
+# Install dev version of pyxir
+cd /workspace/pyxir 
+pip install --install-option="--use_vai_rt" -e .
 
-bash
+# Build onnxruntime against dev version of pyxir
+cd /workspace
+git clone https://github.com/microsoft/onnxruntime
+cd /workspace/onnxruntime
+/bin/sh ./build.sh --enable_pybind --use_vitisai --build_shared_lib --build_wheel --skip_tests
+pip install build/Debug/dist/*.whl
